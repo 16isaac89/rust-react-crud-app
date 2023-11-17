@@ -1,0 +1,1 @@
+This is a rust backend app made with Axum framework and react as the frontend
