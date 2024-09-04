@@ -1,7 +1,18 @@
+mod handler;
+mod model;
+mod route;
+mod schema;
+
 use std::sync::Arc;
 
-use axum::{response::IntoResponse, routing::get, Json, Router};
+use axum::http::{
+    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
+    HeaderValue, Method,
+};
 use dotenv::dotenv;
+use route::create_router;
+use tower_http::cors::CorsLayer;
+
 use sqlx::mysql::{MySqlPool, MySqlPoolOptions};
 
 pub struct AppState {
@@ -28,22 +39,11 @@ async fn main() {
         }
     };
 
-    let app = Router::new()
-        .route("/api/healthchecker", get(health_checker_handler))
-        .with_state(Arc::new(AppState { db: pool.clone() }));
+    
+
+    let app = create_router(Arc::new(AppState { db: pool.clone() }));
 
     println!("🚀 Server started successfully");
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
     axum::serve(listener, app).await.unwrap()
-}
-
-async fn health_checker_handler() -> impl IntoResponse {
-    const MESSAGE: &str = "Rust CRUD API Example with Axum Framework and MySQL";
-
-    let json_response = serde_json::json!({
-        "status": "success",
-        "message": MESSAGE
-    });
-
-    Json(json_response)
 }

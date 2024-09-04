@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct FilterOptions{
     pub page:Option<usize>,
     pub limit:Option<usize>,
