@@ -29,3 +29,16 @@ pub struct UpdateNoteSchema{
     pub category: Option<String>,
     pub published: Option<bool>,
 }
+
+pub struct SaveUser{
+    pub id: String,
+    pub first_name:String,
+    pub second_name:String,
+    pub email:String,
+    pub active:Option<String>,
+    pub password:String,
+    pub dob: String,
+    pub created_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub deleted_at: Option<chrono::DateTime<chrono::Utc>>,
+}

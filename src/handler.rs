@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use pwhash::bcrypt;
 
 use axum::{
     extract::{Path, Query, State},
@@ -7,10 +8,11 @@ use axum::{
     Json,
 };
 use serde_json::json;
+use sqlx::query;
 
 use crate::{
-    model::{NoteModel, NoteModelResponse},
-    schema::{CreateNoteSchema, FilterOptions, ParamOptions, UpdateNoteSchema},
+    model::{NoteModel, NoteModelResponse,UserModel,UserModelResponse},
+    schema::{CreateNoteSchema, FilterOptions, ParamOptions, SaveUser, UpdateNoteSchema},
     AppState,
 };
 
@@ -65,6 +67,47 @@ pub async fn note_list_handler(
     });
 
     Ok(Json(json_response))
+}
+
+//create the user
+pub async fn save_user_info(
+    State(data):State<Arc<AppState>>,
+    Json(body):Json<SaveUser>
+)->Result<impl IntoResponse,(StatusCode,Json<serde_json::Value>)>{
+
+    let user_id = uuid::Uuid::new_v4().to_string();
+    let password = bcrypt::hash(body.password.to_string()).unwrap();
+    
+    let query_result = sqlx::query(r#"INSERT INTO users (id,first_name,second_name,email,password,dob) VALUES(?,?,?,?,?,?,?)"#)
+    .bind(user_id.clone())
+    .bind(body.first_name.to_string())
+    .bind(body.second_name.to_string())
+    .bind(body.email.to_string())
+    .bind(password.clone())
+    .execute(&data.db)
+    .await
+    .map_err(|err: sqlx::Error| err.to_string() );
+
+if let Err(err) = query_result{
+    if err.contains("Duplicate entry"){
+        let error_response = serde_json::json!({
+            "status":"fail",
+            "message":"Duplicate entry",
+        });
+        return Err((StatusCode::CONFLICT,Json(error_response)));
+    }
+    return Err((StatusCode::INTERNAL_SERVER_ERROR,Json(json!({"status":"error","message":format!("{:?}",err)}))));
+}
+
+let reg_response = serde_json::json!({
+    "status":"success",
+    "message":"User created successfully",
+
+});
+
+Ok(Json(reg_response))
+
+
 }
 
 
@@ -263,3 +306,4 @@ pub async fn delete_note_handler(
 
     Ok(StatusCode::NO_CONTENT)
 }
+
