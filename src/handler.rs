@@ -11,7 +11,7 @@ use serde_json::json;
 use sqlx::query;
 
 use crate::{
-    model::{NoteModel, NoteModelResponse,UserModel,UserModelResponse},
+    model::{NoteModel, NoteModelResponse,UserModel},
     schema::{CreateNoteSchema, FilterOptions, ParamOptions, SaveUser, UpdateNoteSchema},
     AppState,
 };
